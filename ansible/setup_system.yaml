@@ -1,0 +1,25 @@
+- name: Install and configure Node Exporter
+  hosts: targets
+  become: true
+  gather_facts: true
+
+  vars:
+    node_exporter_package: prometheus-node-exporter
+    node_exporter_service: prometheus-node-exporter
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Node Exporter package
+      apt:
+        name: "{{ node_exporter_package }}"
+        state: present
+
+    - name: Ensure Node Exporter service is enabled and running
+      systemd:
+        name: "{{ node_exporter_service }}"
+        state: started
+        enabled: true
