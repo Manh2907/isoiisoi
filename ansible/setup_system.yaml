@@ -1,25 +1,37 @@
-- name: Install and configure Node Exporter
-  hosts: targets
-  become: true
-  gather_facts: true
 
-  vars:
-    node_exporter_package: prometheus-node-exporter
-    node_exporter_service: prometheus-node-exporter
 
+
+
+
+
+
+
+
+
+---
+- name: Setup Monitoring Agents
+  hosts: all
+  become: yes
+  vars_files:
+    - secrets.yml  # Gọi file bí mật ở đây
+  
   tasks:
-    - name: Update apt cache
+    - name: Cai dat Node Exporter
       apt:
-        update_cache: true
-        cache_valid_time: 3600
-
-    - name: Install Node Exporter package
-      apt:
-        name: "{{ node_exporter_package }}"
+        name: prometheus-node-exporter
         state: present
 
-    - name: Ensure Node Exporter service is enabled and running
-      systemd:
-        name: "{{ node_exporter_service }}"
-        state: started
-        enabled: true
+    - name: Day script all-in-one len may con
+      copy:
+        src: ./script/all-in-one.sh
+        dest: /usr/local/bin/all-in-one.sh
+        mode: '0755'
+
+    - name: Thong bao qua Telegram bot
+      uri:
+        url: "https://api.telegram.org/bot{{ telegram_bot_token }}/sendMessage"
+        method: POST
+        body_format: json
+        body:
+          chat_id: "{{ telegram_chat_id }}"
+          text: "🚀 Ansible đã cấu hình xong Node Exporter trên {{ inventory_hostname }}"
