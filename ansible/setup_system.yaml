@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
----
 - name: Setup Monitoring Agents
   hosts: all
   become: yes
@@ -35,3 +24,21 @@
         body:
           chat_id: "{{ telegram_chat_id }}"
           text: "🚀 Ansible đã cấu hình xong Node Exporter trên {{ inventory_hostname }}"
+    - name: "Thực thi kịch bản Hardening OS (Bảo mật chuyên sâu)"
+      script: ./scripts/hardening_os.sh
+      register: hardening_result
+
+    - name: "Hiển thị kết quả Hardening"
+      debug:
+        msg: "{{ hardening_result.stdout_lines }}"
+    ---
+    - name: Triển khai toàn diện hệ thống Giám sát & Bảo mật
+      hosts: targets
+  become: yes
+  vars_files:
+    - secrets.yml  # File chứa pass đã mã hóa Vault
+
+  roles:
+    - common      # 1. Cài nền tảng (Văn Nam làm)
+    - security    # 2. Khóa bảo mật (Quang Minh làm)
+    - monitoring  # 3. Cài Exporter & Promtail (Nhật Nam làm)

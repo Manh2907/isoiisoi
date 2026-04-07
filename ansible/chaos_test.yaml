@@ -1,0 +1,12 @@
+---
+- name: Kịch bản thử nghiệm khả năng chịu lỗi (Chaos Test)
+  hosts: targets
+  tasks:
+    - name: "Đánh sập dịch vụ Node Exporter để check cảnh báo"
+      systemd:
+        name: prometheus-node-exporter
+        state: stopped
+    
+    - name: "Thông báo lỗi đã tạo"
+      debug:
+        msg: "Dịch vụ Node Exporter trên {{ inventory_hostname }} đã bị tắt. Đang chờ Telegram báo về..."

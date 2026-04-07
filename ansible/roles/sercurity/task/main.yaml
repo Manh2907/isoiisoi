@@ -1,0 +1,26 @@
+---
+- name: Đẩy file script Hardening OS lên máy con
+  copy:
+    src: ../../../scripts/hardening_os.sh
+    dest: /usr/local/bin/hardening_os.sh
+    mode: '0755'
+
+- name: Thực thi script Hardening OS
+  command: /bin/bash /usr/local/bin/hardening_os.sh
+  register: hardening_result
+  changed_when: "'Hardening OS hoàn tất' in hardening_result.stdout"
+
+- name: Cấu hình Firewall (UFW) - Chỉ cho phép SSH và Monitoring
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  with_items:
+    - 22    # SSH
+    - 9100  # Node Exporter
+    - 9080  # Promtail
+
+- name: Kích hoạt Firewall UFW
+  ufw:
+    state: enabled
+    policy: deny # Chặn tất cả các port khác ngoài danh sách trên

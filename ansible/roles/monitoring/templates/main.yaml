@@ -1,0 +1,31 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  # Tự động lấy IP của VM1 (máy cài Loki) từ Inventory
+  - url: http://{{ hostvars['vm1']['ansible_host'] }}:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: varlogs
+        # Tự động điền tên máy con (VM2, VM3) vào nhãn log
+        host: {{ inventory_hostname }} 
+        __path__: /var/log/*.log
+
+  - job_name: cmdlog
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: cmdlog
+        host: {{ inventory_hostname }}
+        # Thu thập log từ script Hardening của bạn
+        __path__: /var/log/cmdlog.log
