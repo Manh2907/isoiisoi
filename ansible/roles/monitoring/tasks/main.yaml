@@ -1,0 +1,38 @@
+- name: Cai dat Node Exporter
+  apt:
+    name: prometheus-node-exporter
+    state: present
+
+- name: Tai va cai dat Promtail (Agent thu thap log)
+  get_url:
+    url: "https://github.com/grafana/loki/releases/download/v2.9.1/promtail-linux-amd64.zip"
+    dest: /tmp/promtail.zip
+
+- name: Giai nen Promtail vao /usr/local/bin
+  unarchive:
+    src: /tmp/promtail.zip
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Tao file cau hinh Promtail tu Template
+  template:
+    src: prompt.yaml
+    dest: /etc/promtail-config.yml
+
+- name: Tao Service cho Promtail de tu khoi dong cung he thong
+  copy:
+    dest: /etc/systemd/system/promtail.service
+    content: | 
+      [Unit]
+      Description=Promtail service
+      [Service]
+      ExecStart=/usr/local/bin/promtail-linux-amd64 -config.file=/etc/promtail-config.yml
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Khoi dong Promtail
+  systemd:
+    name: promtail
+    state: started
+    enabled: yes
+    daemon_reload: yes

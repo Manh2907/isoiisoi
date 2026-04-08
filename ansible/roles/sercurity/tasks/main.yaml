@@ -1,0 +1,13 @@
+- name: Thuc thi script Hardening OS
+  script: ../../../script/hardening_os.sh
+  register: hardening_result
+
+- name: In ket qua hardening ra man hinh
+  debug:
+    msg: "{{ hardening_result.stdout_lines }}"
+
+- name: Mo Port cho phep Monitoring (SSH, Node Exporter, Promtail)
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+  with_items: [22, 9100, 9080]

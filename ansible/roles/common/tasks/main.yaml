@@ -1,0 +1,24 @@
+
+- name: Cập nhật cache cua hệ thong (apt update)
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install cac goi pham mem
+  apt:
+    name:
+      - systemd-timesyncd
+      - rsyslog
+      - logrotate
+      - curl
+      - unzip
+    state: present
+
+- name: Thoi gian là Asia/Ho_Chi_Minh
+  timezone:
+    name: Asia/Ho_Chi_Minh
+- name: Khoi động và kích hoạt dịch vụ NTP (Đong bộ giờ)
+  service:
+   name: systemd-timesyncd
+   state: started
+   enabled: yes

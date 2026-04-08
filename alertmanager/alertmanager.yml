@@ -1,39 +1,46 @@
-      - api_url: "https://api.telegram.org"
-        chat_id: 
-        bot_token: 
-        send_resolved: true
-        parse_mode: "HTML"
+global:
+  # Thời gian chờ trước khi gửi thông báo "Đã khắc phục" (Resolved)
+  resolve_timeout: 5m
 
-  - name: "telegram-alert"
-    telegram_configs:
-      - api_url: "https://api.telegram.org"
-        chat_id: 
-        bot_token: 
-        send_resolved: true
-        parse_mode: "HTML"
+# --- ĐỊNH TUYẾN (ROUTE) - PHẦN QUAN TRỌNG NHẤT ---
+route:
+  # Gom các cảnh báo có cùng tên và cùng máy chủ vào một tin nhắn
+  group_by: ['alertname', 'instance', 'severity']
+  
+  # Đợi 30 giây để xem có thêm lỗi nào cùng nhóm không trước khi gửi tin đầu tiên
+  group_wait: 30s
+  
+  # Khoảng thời gian giữa các lần gửi thông báo cho lỗi mới phát sinh trong nhóm
+  group_interval: 5m
+  
+  # Sau 3 giờ nếu lỗi vẫn còn, sẽ gửi tin nhắn nhắc lại (Repeat)
+  repeat_interval: 3h
+  
+  # Tên của Receiver (Nơi nhận) bên dưới
+  receiver: 'telegram-nhom27'
 
-  # WEBHOOK RECEIVER (BẠN TỰ CÓ API)
-  - name: "webhook"
-    webhook_configs:
-      - url: "http://api.my-alert.com/alert/7204342151"
-        send_resolved: true
+# --- NƠI NHẬN (RECEIVERS) ---
+receivers:
+- name: 'telegram-nhom27'
+  telegram_configs:
+  - bot_token: '7123456789:AAH_TOKEN_CUA_BAN' # <--- Thay Token thật của nhóm vào đây
+    chat_id: -100123456789                  # <--- Thay Chat ID thật vào đây
+    
+    # Định dạng nội dung tin nhắn gửi về điện thoại
+    message: |
+      <b>[HỆ THỐNG GIÁM SÁT - NHÓM 27]</b>
+      <b>Trạng thái:</b> {{ .Status | upper }}
+      <b>Cảnh báo:</b> {{ .CommonAnnotations.summary }}
+      <b>Chi tiết:</b> {{ .CommonAnnotations.description }}
+      <b>Máy chủ:</b> {{ .CommonLabels.instance }}
+      <b>Mức độ:</b> {{ .CommonLabels.severity }}
+      <b>Thời gian:</b> {{ .StartsAt.Format "15:04:05 02-01-2006" }}
+    parse_mode: 'HTML'
 
-# INHIBIT RULES (GIỮ NGUYÊN)
+# (Tùy chọn) Chặn cảnh báo thừa
 inhibit_rules:
   - source_match:
-      severity: "critical"
+      severity: 'critical'
     target_match:
-      severity: "warning"
-    equal: ["alertname"]
-
-  - source_match:
-      severity: "critical"
-    target_match:
-      severity: "warning"
-    equal: ["zone"]
-
-  - source_match:
-      severity: "critical"
-    target_match:
-      severity: "error"
-    equal: ["zone"]
+      severity: 'warning'
+    equal: ['alertname', 'instance']

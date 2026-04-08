@@ -1,44 +1,10 @@
-- name: Setup Monitoring Agents
-  hosts: all
+- name: Trien khai he thong
+  hosts: targets
   become: yes
   vars_files:
-    - secrets.yml  # Gọi file bí mật ở đây
-  
-  tasks:
-    - name: Cai dat Node Exporter
-      apt:
-        name: prometheus-node-exporter
-        state: present
+    - secrets.yml
 
-    - name: Day script all-in-one len may con
-      copy:
-        src: ./script/all-in-one.sh
-        dest: /usr/local/bin/all-in-one.sh
-        mode: '0755'
-
-    - name: Thong bao qua Telegram bot
-      uri:
-        url: "https://api.telegram.org/bot{{ telegram_bot_token }}/sendMessage"
-        method: POST
-        body_format: json
-        body:
-          chat_id: "{{ telegram_chat_id }}"
-          text: "🚀 Ansible đã cấu hình xong Node Exporter trên {{ inventory_hostname }}"
-    - name: "Thực thi kịch bản Hardening OS (Bảo mật chuyên sâu)"
-      script: ./scripts/hardening_os.sh
-      register: hardening_result
-
-    - name: "Hiển thị kết quả Hardening"
-      debug:
-        msg: "{{ hardening_result.stdout_lines }}"
-    ---
-    - name: Triển khai toàn diện hệ thống Giám sát & Bảo mật
-      hosts: targets
-  become: yes
-  vars_files:
-    - secrets.yml  # File chứa pass đã mã hóa Vault
-
-  roles:
-    - common      # 1. Cài nền tảng (Văn Nam làm)
-    - security    # 2. Khóa bảo mật (Quang Minh làm)
-    - monitoring  # 3. Cài Exporter & Promtail (Nhật Nam làm)
+  roles: #Cac file khi ansible chay toi se tim den
+    - common
+    - sercurity
+    - monitoring  
